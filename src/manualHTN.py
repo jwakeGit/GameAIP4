@@ -1,7 +1,6 @@
 import pyhop
 
 '''begin operators'''
-# Hello
 def op_punch_for_wood (state, ID):
 	if state.time[ID] >= 4:
 		state.wood[ID] += 1

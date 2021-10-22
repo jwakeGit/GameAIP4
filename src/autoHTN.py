@@ -32,13 +32,37 @@ def declare_methods (data):
 
 def make_operator (rule):
 	def operator (state, ID):
-		# your code here
-		pass
+		# if we have time to do this operator
+		if state.time[ID] >= rule['Time']:
+			# if this operator has preconditions
+			if 'Requires' in rule:
+				# look at all the preconditions
+				for item, num in rule['Requires'].items():
+					# if we don't have enough of an item
+					if getattr(state,item)[ID] < num:
+						return False
+
+			# update all the items that this operator produces
+			for item, num in rule['Produces'].items():
+				setattr(state, item, {ID: getattr(state,item)[ID] + num})
+
+			# if this operator consumes any items
+			if 'Consumes' in rule:
+				# update all the items that this operator consumes
+				for item, num in rule['Consumes'].items():
+					setattr(state, item, {ID: getattr(state,item)[ID] - num})
+			state.time[ID] -= rule['Time']
+			return state
+		return False
 	return operator
 
 def declare_operators (data):
-	# your code here
-	# hint: call make_operator, then declare the operator to pyhop using pyhop.declare_operators(o1, o2, ..., ok)
+	# look at all the recipes in the crafting.json
+	for operator_name, rule in data['Recipes'].items():
+		operator = make_operator(rule)
+		operator.__name__ = 'op_' + operator_name
+
+		pyhop.declare_operators(operator)
 	pass
 
 def add_heuristic (data, ID):
@@ -87,10 +111,10 @@ if __name__ == '__main__':
 	declare_methods(data)
 	add_heuristic(data, 'agent')
 
-	# pyhop.print_operators()
-	# pyhop.print_methods()
+	pyhop.print_operators()
+	pyhop.print_methods()
 
 	# Hint: verbose output can take a long time even if the solution is correct; 
 	# try verbose=1 if it is taking too long
-	pyhop.pyhop(state, goals, verbose=3)
+	# pyhop.pyhop(state, goals, verbose=3)
 	# pyhop.pyhop(state, [('have_enough', 'agent', 'cart', 1),('have_enough', 'agent', 'rail', 20)], verbose=3)
