@@ -17,17 +17,78 @@ pyhop.declare_methods ('produce', produce)
 
 def make_method (name, rule):
 	def method (state, ID):
+		subtasks = []
+
+		# if this method has preconditions
+		if 'Requires' in rule:
+			# look at all the preconditions
+			for item, num in rule['Requires'].items():
+				subtasks.append(('have_enough', ID, item, num))
+
+		# if this method consumes any items
+		if 'Consumes' in rule:
+			after_requires = len(subtasks)
+
+			# look at all the items
+			for item, num in rule['Consumes'].items():
+				subtasks.insert(after_requires, ('have_enough', ID, item, num))
+		
+		subtasks.append(('op_' + name, ID))
+		
+		return subtasks
+		
 		# for each item that we require:
 			# if we don't have enough of the item:
 				# run its method, in order to produce it
 		# return the operator that produces this item
-		pass
 
 	return method
 
 def declare_methods (data):
 	# some recipes are faster than others for the same product even though they might require extra tools
 	# sort the recipes so that faster recipes go first
+
+	data_sorted = []
+
+	# look at all the recipes in the crafting.json
+	for name, rule in data['Recipes'].items():
+		# if data_sorted isn't empty
+		if len(data_sorted) != 0:
+			i = 0
+
+			# look at each recipe in data_sorted
+			for other_name, other_rule in data_sorted:
+				# if the recipe in crafting.json is faster than the recipe in data_sorted
+				if rule['Time'] < other_rule['Time']:
+					# stop looking
+					break;
+				
+				i += 1
+
+			# put the recipe before the slower recipe in data_sorted
+			data_sorted.insert(i, (name, rule))
+		else:
+			data_sorted.append((name, rule))
+	
+	methods_list = {}
+
+	# look at all the recipes in data_sorted
+	for name, rule in data_sorted:
+		method = make_method(name, rule)
+		method.__name__ = name
+
+		# look at each item that this method produces
+		for item in rule['Produces'].keys():
+			# if there are other methods that produce the item
+			if item in methods_list:
+				# add this method to the list
+				methods_list[item].append(method)
+			else:
+				methods_list[item] = [method]
+	
+	# look at all the items along with their methods in methods_list
+	for item, methods in methods_list.items():
+		pyhop.declare_methods('produce_' + item, *methods)
 
 	# for method_name, rule in data['Recipies'].items():
 		# method = make_method(method_name, rule)
@@ -51,17 +112,24 @@ def make_operator (rule):
 					# if we don't have enough of an item
 					if getattr(state,item)[ID] < num:
 						return False
-
-			# update all the items that this operator produces
-			for item, num in rule['Produces'].items():
-				setattr(state, item, {ID: getattr(state,item)[ID] + num})
-
+						
 			# if this operator consumes any items
 			if 'Consumes' in rule:
 				# update all the items that this operator consumes
 				for item, num in rule['Consumes'].items():
-					setattr(state, item, {ID: getattr(state,item)[ID] - num})
+					# calculate the amount of an item after doing this operator
+					num_new = getattr(state,item)[ID] - num
+
+					# if we don't have enough of the item
+					if num_new < 0:
+						return False
+
+					setattr(state, item, {ID: num_new})
 			state.time[ID] -= rule['Time']
+			
+			# update all the items that this operator produces
+			for item, num in rule['Produces'].items():
+				setattr(state, item, {ID: getattr(state,item)[ID] + num})
 			return state
 		return False
 	return operator
@@ -80,7 +148,11 @@ def add_heuristic (data, ID):
 	# do not change parameters to heuristic(), but can add more heuristic functions with the same parameters: 
 	# e.g. def heuristic2(...); pyhop.add_check(heuristic2)
 	def heuristic (state, curr_task, tasks, plan, depth, calling_stack):
-		# your code here
+		# look at all the tasks
+		for task in tasks:
+			# if there are duplicate tasks
+			if tasks.count(task) > 1:
+				return True
 		return False # if True, prune this branch
 
 	pyhop.add_check(heuristic)
@@ -114,17 +186,17 @@ if __name__ == '__main__':
 	with open(rules_filename) as f:
 		data = json.load(f)
 
-	state = set_up_state(data, 'agent', time=239) # allot time here
+	state = set_up_state(data, 'agent', time=300) # allot time here
 	goals = set_up_goals(data, 'agent')
 
 	declare_operators(data)
 	declare_methods(data)
 	add_heuristic(data, 'agent')
 
-	pyhop.print_operators()
-	pyhop.print_methods()
+	# pyhop.print_operators()
+	# pyhop.print_methods()
 
 	# Hint: verbose output can take a long time even if the solution is correct; 
 	# try verbose=1 if it is taking too long
-	# pyhop.pyhop(state, goals, verbose=3)
+	pyhop.pyhop(state, goals, verbose=1)
 	# pyhop.pyhop(state, [('have_enough', 'agent', 'cart', 1),('have_enough', 'agent', 'rail', 20)], verbose=3)
