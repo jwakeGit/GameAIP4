@@ -17,7 +17,10 @@ pyhop.declare_methods ('produce', produce)
 
 def make_method (name, rule):
 	def method (state, ID):
-		# your code here
+		# for each item that we require:
+			# if we don't have enough of the item:
+				# run its method, in order to produce it
+		# return the operator that produces this item
 		pass
 
 	return method
@@ -26,8 +29,15 @@ def declare_methods (data):
 	# some recipes are faster than others for the same product even though they might require extra tools
 	# sort the recipes so that faster recipes go first
 
-	# your code here
-	# hint: call make_method, then declare the method to pyhop using pyhop.declare_methods('foo', m1, m2, ..., mk)	
+	# for method_name, rule in data['Recipies'].items():
+		# method = make_method(method_name, rule)
+			# note: i'm not sure what we do with the name argument in make_method.
+		# method.__name__ = 'produce_' + method_name
+		# for each subtask method that could be used to make this:
+			# index them in a tuple with inverse relation to their efficiency
+				# for example: subtask_tuple[0] = most efficient subtask
+
+		# pyhop.declare_methods(method_name, subtask_tuple)	
 	pass			
 
 def make_operator (rule):
