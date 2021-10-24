@@ -216,7 +216,7 @@ def seek_plan(state,tasks,plan,depth,verbose=0,calling_stack=[]):
     - verbose is whether to print debugging messages
     # """
     # print (tasks)
-    input(" ================== Press Enter ==================")
+    # input(" ================== Press Enter ==================")
     if verbose>1: print('depth {} tasks {}'.format(depth,tasks))
     if tasks == []:
         if verbose>2: print('depth {} returns plan {}'.format(depth,plan))

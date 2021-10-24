@@ -61,7 +61,7 @@ def declare_methods (data):
 				# if the recipe in crafting.json is faster than the recipe in data_sorted
 				if rule['Time'] < other_rule['Time']:
 					# stop looking
-					break;
+					break
 				
 				i += 1
 
@@ -111,6 +111,7 @@ def make_operator (rule):
 				for item, num in rule['Requires'].items():
 					# if we don't have enough of an item
 					if getattr(state,item)[ID] < num:
+						print('debug 1')
 						return False
 						
 			# if this operator consumes any items
@@ -122,6 +123,7 @@ def make_operator (rule):
 
 					# if we don't have enough of the item
 					if num_new < 0:
+						print('debug 2')
 						return False
 
 					setattr(state, item, {ID: num_new})
@@ -131,6 +133,7 @@ def make_operator (rule):
 			for item, num in rule['Produces'].items():
 				setattr(state, item, {ID: getattr(state,item)[ID] + num})
 			return state
+		print('debug 3')
 		return False
 	return operator
 
@@ -147,44 +150,59 @@ def add_heuristic (data, ID):
 	# prune search branch if heuristic() returns True
 	# do not change parameters to heuristic(), but can add more heuristic functions with the same parameters: 
 	# e.g. def heuristic2(...); pyhop.add_check(heuristic2)
-	def heuristic (state, curr_task, tasks, plan, depth, calling_stack):
+	def tool_heuristic (state, curr_task, tasks, plan, depth, calling_stack):
 		print(curr_task)
 		print(tasks)
 
 		if 'produce' in curr_task:
 			if 'wooden_axe' in curr_task:
-				if state.made_wooden_axe[ID] is True:
+				if state.made_wooden_axe[ID] is True or \
+				state.made_stone_axe[ID] is True or \
+				state.made_iron_axe[ID] is True:
+					print('dont do wooden_axe')
 					return True
 				else:
 					state.made_wooden_axe[ID] = True
+					print('made wooden axe')
 			elif 'stone_axe' in curr_task:
-				if state.made_stone_axe[ID] is True:
+				if state.made_stone_axe[ID] is True or \
+				state.made_iron_axe[ID] is True:
+					print('dont do stone_axe')
 					return True
 				else:
 					state.made_stone_axe[ID] = True
+					print('made stone axe')
 			elif 'iron_axe' in curr_task:
 				if state.made_iron_axe[ID] is True:
+					print('dont do iron_axe')
 					return True
 				else:
 					state.made_iron_axe[ID] = True
+					print('made iron axe')
 			elif 'wooden_pickaxe' in curr_task:
-				if state.made_wooden_pickaxe[ID] is True:
+				if state.made_wooden_pickaxe[ID] is True or \
+				state.made_stone_pickaxe[ID] is True or \
+				state.made_iron_pickaxe[ID] is True:
+					print('dont do wooden_pickaxe')
 					return True
 				else:
 					state.made_wooden_pickaxe[ID] = True
 			elif 'stone_pickaxe' in curr_task:
-				if state.made_stone_pickaxe[ID] is True:
+				if state.made_stone_pickaxe[ID] is True or \
+				state.made_iron_pickaxe[ID] is True:
+					print('dont do stone_pickaxe')
 					return True
 				else:
 					state.made_stone_pickaxe[ID] = True
 			elif 'iron_pickaxe' in curr_task:
 				if state.made_iron_pickaxe[ID] is True:
+					print('dont do iron_pickaxe')
 					return True
 				else:
 					state.made_iron_pickaxe[ID] = True
 		return False # if True, prune this branch
 
-	pyhop.add_check(heuristic)
+	pyhop.add_check(tool_heuristic)
 
 
 def set_up_state (data, ID, time=0):
@@ -228,5 +246,5 @@ if __name__ == '__main__':
 
 	# Hint: verbose output can take a long time even if the solution is correct; 
 	# try verbose=1 if it is taking too long
-	pyhop.pyhop(state, goals, verbose=1)
+	pyhop.pyhop(state, goals, verbose=3)
 	# pyhop.pyhop(state, [('have_enough', 'agent', 'cart', 1),('have_enough', 'agent', 'rail', 20)], verbose=3)
