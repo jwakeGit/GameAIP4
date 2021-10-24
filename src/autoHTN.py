@@ -148,11 +148,40 @@ def add_heuristic (data, ID):
 	# do not change parameters to heuristic(), but can add more heuristic functions with the same parameters: 
 	# e.g. def heuristic2(...); pyhop.add_check(heuristic2)
 	def heuristic (state, curr_task, tasks, plan, depth, calling_stack):
-		# look at all the tasks
-		for task in tasks:
-			# if there are duplicate tasks
-			if tasks.count(task) > 1:
-				return True
+		print(curr_task)
+		print(tasks)
+
+		if 'produce' in curr_task:
+			if 'wooden_axe' in curr_task:
+				if state.made_wooden_axe[ID] is True:
+					return True
+				else:
+					state.made_wooden_axe[ID] = True
+			elif 'stone_axe' in curr_task:
+				if state.made_stone_axe[ID] is True:
+					return True
+				else:
+					state.made_stone_axe[ID] = True
+			elif 'iron_axe' in curr_task:
+				if state.made_iron_axe[ID] is True:
+					return True
+				else:
+					state.made_iron_axe[ID] = True
+			elif 'wooden_pickaxe' in curr_task:
+				if state.made_wooden_pickaxe[ID] is True:
+					return True
+				else:
+					state.made_wooden_pickaxe[ID] = True
+			elif 'stone_pickaxe' in curr_task:
+				if state.made_stone_pickaxe[ID] is True:
+					return True
+				else:
+					state.made_stone_pickaxe[ID] = True
+			elif 'iron_pickaxe' in curr_task:
+				if state.made_iron_pickaxe[ID] is True:
+					return True
+				else:
+					state.made_iron_pickaxe[ID] = True
 		return False # if True, prune this branch
 
 	pyhop.add_check(heuristic)
@@ -167,6 +196,7 @@ def set_up_state (data, ID, time=0):
 
 	for item in data['Tools']:
 		setattr(state, item, {ID: 0})
+		setattr(state, 'made_' + item, {ID: False})
 
 	for item, num in data['Initial'].items():
 		setattr(state, item, {ID: num})
