@@ -18,30 +18,31 @@ pyhop.declare_methods ('produce', produce)
 def make_method (name, rule):
 	def method (state, ID):
 		subtasks = []
+		plank_subtask = None
 
+		# if this method consumes any items
+		if 'Consumes' in rule:
+
+			# look at all the items
+			for item, num in rule['Consumes'].items():
+				if item != 'plank':
+					subtasks.append(('have_enough', ID, item, num))
+				else:
+					plank_subtask = ('have_enough', ID, item, num)
+		
 		# if this method has preconditions
 		if 'Requires' in rule:
 			# look at all the preconditions
 			for item, num in rule['Requires'].items():
 				subtasks.append(('have_enough', ID, item, num))
 
-		# if this method consumes any items
-		if 'Consumes' in rule:
-			after_requires = len(subtasks)
+		if plank_subtask is not None:
+			subtasks.append(plank_subtask)
 
-			# look at all the items
-			for item, num in rule['Consumes'].items():
-				subtasks.insert(after_requires, ('have_enough', ID, item, num))
-		
 		subtasks.append(('op_' + name, ID))
 		
 		return subtasks
 		
-		# for each item that we require:
-			# if we don't have enough of the item:
-				# run its method, in order to produce it
-		# return the operator that produces this item
-
 	return method
 
 def declare_methods (data):
@@ -246,5 +247,5 @@ if __name__ == '__main__':
 
 	# Hint: verbose output can take a long time even if the solution is correct; 
 	# try verbose=1 if it is taking too long
-	pyhop.pyhop(state, goals, verbose=3)
+	pyhop.pyhop(state, goals, verbose=1)
 	# pyhop.pyhop(state, [('have_enough', 'agent', 'cart', 1),('have_enough', 'agent', 'rail', 20)], verbose=3)
