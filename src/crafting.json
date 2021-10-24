@@ -23,8 +23,8 @@
  "Initial": {
  },
  "Goal": {
-   "plank": 1,
-   "cobble": 1
+   "cart": 1,
+   "rail": 10
  },
  "Recipes": {
    "iron_axe for wood": {
