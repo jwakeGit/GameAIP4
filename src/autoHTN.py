@@ -281,7 +281,7 @@ if __name__ == '__main__':
 	with open(rules_filename) as f:
 		data = json.load(f)
 
-	state = set_up_state(data, 'agent', time=250) # allot time here
+	state = set_up_state(data, 'agent', time=175) # allot time here
 	goals = set_up_goals(data, 'agent')
 
 	declare_operators(data)
@@ -289,18 +289,27 @@ if __name__ == '__main__':
 	add_heuristic(data, 'agent')
 
 	for scan_task in goals:
-		pickaxe_tier_3 = ["cart", "rail"]
-		pickaxe_tier_2 = ["ingot", "ore", "furnace", "iron"]
-		pickaxe_tier_1 = ["coal", "cobble", "stone"]
+		pickaxe_tier_3 = ["cart", "rail", "iron_pickaxe"]
+		pickaxe_tier_2 = ["ingot", "ore", "furnace", "iron_axe", "stone_pickaxe"]
+		pickaxe_tier_1 = ["coal", "cobble", "stone_axe"]
+
+		axe_tier_3 = ["iron_axe"]
+		axe_tier_2 = ["stone_axe"]
+		axe_tier_1 = ["wooden_axe"]
 				
 		if any(x in scan_task for x in pickaxe_tier_3): state.pickaxe_tier = 3
 		elif any(x in scan_task for x in pickaxe_tier_2): state.pickaxe_tier = 2
 		elif any(x in scan_task for x in pickaxe_tier_1): state.pickaxe_tier = 1
+
+		if any(x in scan_task for x in axe_tier_3): state.axe_tier = 3
+		elif any(x in scan_task for x in axe_tier_2): state.axe_tier = 2
+		elif any(x in scan_task for x in axe_tier_1): state.axe_tier = 1
 
 	# pyhop.print_operators()
 	# pyhop.print_methods()
 
 	# Hint: verbose output can take a long time even if the solution is correct; 
 	# try verbose=1 if it is taking too long
+	print(state.pickaxe_tier)
 	pyhop.pyhop(state, goals, verbose=1)
 	# pyhop.pyhop(state, [('have_enough', 'agent', 'cart', 1),('have_enough', 'agent', 'rail', 20)], verbose=3)
