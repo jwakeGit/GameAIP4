@@ -202,6 +202,12 @@ def add_heuristic (data, ID):
 					state.made_iron_pickaxe[ID] = True
 		return False # if True, prune this branch
 
+	 def general_heuristic (state, curr_task, tasks, data, plan, depth, calling_stack):
+	 	print(curr_task)
+	 	print(tasks)
+
+
+
 	pyhop.add_check(tool_heuristic)
 
 
@@ -234,7 +240,7 @@ if __name__ == '__main__':
 	with open(rules_filename) as f:
 		data = json.load(f)
 
-	state = set_up_state(data, 'agent', time=300) # allot time here
+	state = set_up_state(data, 'agent', time=250) # allot time here
 	goals = set_up_goals(data, 'agent')
 
 	declare_operators(data)
@@ -246,5 +252,5 @@ if __name__ == '__main__':
 
 	# Hint: verbose output can take a long time even if the solution is correct; 
 	# try verbose=1 if it is taking too long
-	pyhop.pyhop(state, goals, verbose=3)
+	pyhop.pyhop(state, goals, verbose=1)
 	# pyhop.pyhop(state, [('have_enough', 'agent', 'cart', 1),('have_enough', 'agent', 'rail', 20)], verbose=3)
