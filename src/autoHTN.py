@@ -18,30 +18,31 @@ pyhop.declare_methods ('produce', produce)
 def make_method (name, rule):
 	def method (state, ID):
 		subtasks = []
+		plank_subtask = None
 
+		# if this method consumes any items
+		if 'Consumes' in rule:
+
+			# look at all the items
+			for item, num in rule['Consumes'].items():
+				if item != 'plank':
+					subtasks.append(('have_enough', ID, item, num))
+				else:
+					plank_subtask = ('have_enough', ID, item, num)
+		
 		# if this method has preconditions
 		if 'Requires' in rule:
 			# look at all the preconditions
 			for item, num in rule['Requires'].items():
 				subtasks.append(('have_enough', ID, item, num))
 
-		# if this method consumes any items
-		if 'Consumes' in rule:
-			after_requires = len(subtasks)
+		if plank_subtask is not None:
+			subtasks.append(plank_subtask)
 
-			# look at all the items
-			for item, num in rule['Consumes'].items():
-				subtasks.insert(after_requires, ('have_enough', ID, item, num))
-		
 		subtasks.append(('op_' + name, ID))
 		
 		return subtasks
 		
-		# for each item that we require:
-			# if we don't have enough of the item:
-				# run its method, in order to produce it
-		# return the operator that produces this item
-
 	return method
 
 def declare_methods (data):
@@ -150,70 +151,110 @@ def add_heuristic (data, ID):
 	# prune search branch if heuristic() returns True
 	# do not change parameters to heuristic(), but can add more heuristic functions with the same parameters: 
 	# e.g. def heuristic2(...); pyhop.add_check(heuristic2)
-	def tool_heuristic (state, curr_task, tasks, plan, depth, calling_stack):
+	# def tool_heuristic (state, curr_task, tasks, plan, depth, calling_stack):
+	# 	print(curr_task)
+	# 	print(tasks)
+
+	# 	if 'produce' in curr_task:
+	# 		if 'wooden_axe' in curr_task:
+	# 			if state.made_wooden_axe[ID] is True or \
+	# 			state.made_stone_axe[ID] is True or \
+	# 			state.made_iron_axe[ID] is True:
+	# 				print('dont do wooden_axe')
+	# 				return True
+	# 			else:
+	# 				state.made_wooden_axe[ID] = True
+	# 				print('made wooden axe')
+	# 		elif 'stone_axe' in curr_task:
+	# 			if state.made_stone_axe[ID] is True or \
+	# 			state.made_iron_axe[ID] is True:
+	# 				print('dont do stone_axe')
+	# 				return True
+	# 			else:
+	# 				state.made_stone_axe[ID] = True
+	# 				print('made stone axe')
+	# 		elif 'iron_axe' in curr_task:
+	# 			if state.made_iron_axe[ID] is True:
+	# 				print('dont do iron_axe')
+	# 				return True
+	# 			else:
+	# 				state.made_iron_axe[ID] = True
+	# 				print('made iron axe')
+	# 		elif 'wooden_pickaxe' in curr_task:
+	# 			if state.made_wooden_pickaxe[ID] is True or \
+	# 			state.made_stone_pickaxe[ID] is True or \
+	# 			state.made_iron_pickaxe[ID] is True:
+	# 				print('dont do wooden_pickaxe')
+	# 				return True
+	# 			else:
+	# 				state.made_wooden_pickaxe[ID] = True
+	# 		elif 'stone_pickaxe' in curr_task:
+	# 			if state.made_stone_pickaxe[ID] is True or \
+	# 			state.made_iron_pickaxe[ID] is True:
+	# 				print('dont do stone_pickaxe')
+	# 				return True
+	# 			else:
+	# 				state.made_stone_pickaxe[ID] = True
+	# 		elif 'iron_pickaxe' in curr_task:
+	# 			if state.made_iron_pickaxe[ID] is True:
+	# 				print('dont do iron_pickaxe')
+	# 				return True
+	# 			else:
+	# 				state.made_iron_pickaxe[ID] = True
+	# 	return False # if True, prune this branch
+	
+	# pyhop.add_check(tool_heuristic)
+	
+	def overarching_heuristic (state, curr_task, tasks, plan, depth, calling_stack):
 		print(curr_task)
 		print(tasks)
 
 		if 'produce' in curr_task:
 			if 'wooden_axe' in curr_task:
-				if state.made_wooden_axe[ID] is True or \
-				state.made_stone_axe[ID] is True or \
-				state.made_iron_axe[ID] is True:
-					print('dont do wooden_axe')
+				if state.axe_tier < 1: return True
+				elif state.made_wooden_axe[ID] is True:
 					return True
 				else:
 					state.made_wooden_axe[ID] = True
-					print('made wooden axe')
 			elif 'stone_axe' in curr_task:
-				if state.made_stone_axe[ID] is True or \
-				state.made_iron_axe[ID] is True:
-					print('dont do stone_axe')
+				if state.axe_tier < 2: return True
+				elif state.made_stone_axe[ID] is True:
 					return True
 				else:
 					state.made_stone_axe[ID] = True
-					print('made stone axe')
 			elif 'iron_axe' in curr_task:
+				if state.axe_tier < 3: return True
 				if state.made_iron_axe[ID] is True:
-					print('dont do iron_axe')
 					return True
 				else:
 					state.made_iron_axe[ID] = True
-					print('made iron axe')
 			elif 'wooden_pickaxe' in curr_task:
-				if state.made_wooden_pickaxe[ID] is True or \
-				state.made_stone_pickaxe[ID] is True or \
-				state.made_iron_pickaxe[ID] is True:
-					print('dont do wooden_pickaxe')
+				if state.pickaxe_tier < 1: return True
+				elif state.made_wooden_pickaxe[ID] is True:
 					return True
 				else:
 					state.made_wooden_pickaxe[ID] = True
 			elif 'stone_pickaxe' in curr_task:
-				if state.made_stone_pickaxe[ID] is True or \
-				state.made_iron_pickaxe[ID] is True:
-					print('dont do stone_pickaxe')
+				if state.pickaxe_tier < 2: return True
+				if state.made_stone_pickaxe[ID] is True:
 					return True
 				else:
 					state.made_stone_pickaxe[ID] = True
 			elif 'iron_pickaxe' in curr_task:
+				if state.pickaxe_tier < 3: return True
 				if state.made_iron_pickaxe[ID] is True:
-					print('dont do iron_pickaxe')
 					return True
 				else:
 					state.made_iron_pickaxe[ID] = True
-		return False # if True, prune this branch
 
-	 def general_heuristic (state, curr_task, tasks, data, plan, depth, calling_stack):
-	 	print(curr_task)
-	 	print(tasks)
-
-
-
-	pyhop.add_check(tool_heuristic)
+	pyhop.add_check(overarching_heuristic)
 
 
 def set_up_state (data, ID, time=0):
 	state = pyhop.State('state')
 	state.time = {ID: time}
+	state.axe_tier = 0
+	state.pickaxe_tier = 1
 
 	for item in data['Items']:
 		setattr(state, item, {ID: 0})
@@ -246,6 +287,15 @@ if __name__ == '__main__':
 	declare_operators(data)
 	declare_methods(data)
 	add_heuristic(data, 'agent')
+
+	for scan_task in goals:
+		pickaxe_tier_3 = ["cart", "rail"]
+		pickaxe_tier_2 = ["ingot", "ore", "furnace", "iron"]
+		pickaxe_tier_1 = ["coal", "cobble", "stone"]
+				
+		if any(x in scan_task for x in pickaxe_tier_3): state.pickaxe_tier = 3
+		elif any(x in scan_task for x in pickaxe_tier_2): state.pickaxe_tier = 2
+		elif any(x in scan_task for x in pickaxe_tier_1): state.pickaxe_tier = 1
 
 	# pyhop.print_operators()
 	# pyhop.print_methods()
